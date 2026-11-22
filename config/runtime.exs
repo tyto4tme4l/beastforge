@@ -64,7 +64,7 @@ config :exq,
   queues: [
     {"videos", 2},
     {"images", 4},
-    {"indexing", 12},
+    {"indexing", 2},
     {"notifications", 2}
   ]
 
@@ -115,18 +115,27 @@ if config_env() != :test do
     queue_interval: 20_000
 end
 
-if config_env() == :prod do
-  # Production mailer config
-  config :philomena, Philomena.Mailer,
-    adapter: Swoosh.Adapters.Mua,
-    relay: System.fetch_env!("SMTP_RELAY"),
-    port: String.to_integer(System.get_env("SMTP_PORT", "587")),
-    auth: [
-      username: System.fetch_env!("SMTP_USERNAME"),
-      password: System.fetch_env!("SMTP_PASSWORD")
-    ],
-    ssl: [middlebox_comp_mode: false]
+# Mailer config (Active in prod OR in dev when SMTP credentials exist)
+if System.get_env("SMTP_PASSWORD") do
+  config :swoosh, :api_client, Swoosh.ApiClient.Req
 
+  config :philomena, Philomena.Mailer,
+    adapter: Swoosh.Adapters.Resend,
+    api_key: System.fetch_env!("SMTP_PASSWORD")
+else
+  if config_env() == :dev do
+    config :philomena, Philomena.Mailer, adapter: Swoosh.Adapters.Local
+  end
+end
+
+# Public URL configuration for emails and link generation
+app_origin = System.get_env("APP_ORIGIN", "https://beastforge.org")
+%URI{scheme: scheme, host: host, port: port} = URI.parse(app_origin)
+
+config :philomena, PhilomenaWeb.Endpoint,
+  url: [host: host, scheme: scheme, port: port || 443]
+
+if config_env() == :prod do
   # Production endpoint config
   {:ok, ip} = :inet.parse_address(System.get_env("APP_IP", "127.0.0.1") |> String.to_charlist())
 
@@ -138,12 +147,6 @@ if config_env() == :prod do
     secret_key_base: System.fetch_env!("SECRET_KEY_BASE"),
     server: not is_nil(System.get_env("START_ENDPOINT"))
 else
-  # Don't send email in development; test uses Swoosh.Adapters.Test
-  # (config/test.exs)
-  if config_env() == :dev do
-    config :philomena, Philomena.Mailer, adapter: Swoosh.Adapters.Local
-  end
-
   # Use this to debug slime templates
   # config :slime, :keep_lines, true
 end

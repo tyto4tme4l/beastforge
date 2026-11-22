@@ -18,6 +18,7 @@ defmodule Philomena.Tags.Tag do
     "colorist",
     "comic",
     "commissioner",
+    "creator",
     "editor",
     "fanfic",
     "oc",
@@ -35,6 +36,7 @@ defmodule Philomena.Tags.Tag do
     "art pack" => "content-fanmade",
     "colorist" => "origin",
     "comic" => "content-fanmade",
+    "creator" => "origin",
     "editor" => "origin",
     "fanfic" => "content-fanmade",
     "oc" => "oc",
@@ -48,6 +50,7 @@ defmodule Philomena.Tags.Tag do
     "artist:",
     "colorist:",
     "commissioner:",
+    "creator:",
     "editor:",
     "oc:",
     "photographer:"

@@ -110,15 +110,28 @@ defmodule PhilomenaWeb.ImageController do
     end
   end
 
-  def new(conn, _params) do
+  def new(conn, params) do
+    image = %Image{
+      sources: sources_for_edit(),
+      description: params["description"] || ""
+    }
+
+    # Pre-fill tag_input safely into changeset.params without throwing schema errors
+    params_map =
+      case params["tag_input"] do
+        tags when is_binary(tags) and tags != "" -> %{"tag_input" => tags}
+        _ -> %{}
+      end
+
     changeset =
-      %Image{sources: sources_for_edit()}
-      |> Images.change_image()
+      Images.change_image(image)
+      |> Map.put(:params, params_map)
 
     render(conn, "new.html", title: "New Image", changeset: changeset)
   end
 
   def create(conn, %{"image" => image_params}) do
+    IO.inspect(image_params["tag_input"], label: ">>> SUBMITTED TAG INPUT")
     attributes = conn.assigns.attributes
 
     case Images.create_image(attributes, image_params) do
@@ -134,8 +147,24 @@ defmodule PhilomenaWeb.ImageController do
         |> redirect(to: ~p"/images/#{image}")
 
       {:error, :image, changeset, _} ->
+        # 1. Cleanly format validation error messages
+        error_msg =
+          changeset.errors
+          |> Enum.map(fn {field, {msg, _}} -> "#{field} #{msg}" end)
+          |> Enum.join("; ")
+
+        # 2. Build flat query parameters (prevents URI.encode_query crash)
+        redirect_params =
+          [
+            tag_input: image_params["tag_input"],
+            description: image_params["description"],
+            source_url: image_params["source_url"]
+          ]
+          |> Enum.reject(fn {_k, v} -> is_nil(v) or v == "" end)
+
         conn
-        |> render("new.html", changeset: changeset)
+        |> put_flash(:error, "Upload rejected: #{error_msg}")
+        |> redirect(to: ~p"/images/new?#{redirect_params}")
     end
   end
 

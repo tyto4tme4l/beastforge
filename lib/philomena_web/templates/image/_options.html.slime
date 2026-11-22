@@ -30,7 +30,7 @@
     #embed_options
       - source_link = if image_has_sources(@image), do: " - [url=#{image_first_source(@image)}]Original source[/url]", else: " (Original source unknown at time of posting)"
       - medium_url = thumb_url(@image, false, select_version(@image, :medium))
-      h5 Derpibooru
+      h5 BeastForge
       p
         strong> Small thumbnail
         input.input#embed_small_thumbnail_tag type="text" value=">>#{@image.id}s" cols="10" readonly="readonly"
@@ -57,7 +57,7 @@
           | Copy
         br
         textarea.input.input--wide.input--separate-top#bbcode_embed_full_tag rows="2" cols="100" readonly="readonly"
-          = "[img]#{medium_url}[/img]\n[url=#{url(~p"/images/#{@image}")}]View on Derpibooru[/url]#{source_link}"
+          = "[img]#{medium_url}[/img]\n[url=#{url(~p"/images/#{@image}")}]View on BeastForge[/url]#{source_link}"
       p
         strong> Thumbnailed BBcode
         a href="#" data-click-copy="#bbcode_embed_thumbnail_tag"
@@ -65,7 +65,7 @@
           | Copy
         br
         textarea.input.input--wide.input--separate-top#bbcode_embed_thumbnail_tag rows="2" cols="100" readonly="readonly"
-          = "[img]#{medium_url}[/img]\n[url=#{url(~p"/images/#{@image}")}]View on Derpibooru[/url]#{source_link}"
+          = "[img]#{medium_url}[/img]\n[url=#{url(~p"/images/#{@image}")}]View on BeastForge[/url]#{source_link}"
 
   = if display_mod_tools? do
     .block__tab.hidden data-tab="replace"
@@ -116,9 +116,13 @@
         - else
           = button_to "Restore", ~p"/images/#{@image}/delete", method: "delete", class: "button button--state-success"
 
-        = form_for @changeset, ~p"/images/#{@image}/repair", [method: "post"], fn _f ->
-          .field
-            = submit "Repair", class: "button button--state-success"
+        div
+          = form_for @changeset, ~p"/images/#{@image}/repair", [method: "post"], fn _f ->
+            .field
+              = submit "Repair", class: "button button--state-success"
+          = if can?(@conn, :hide, @image) do
+            div style="margin-top: 6px;"
+              = button_to "Nuke image", ~p"/images/#{@image}/nuke", method: "post", class: "button button--state-danger", data: [confirm: "Are you sure you want to completely nuke image ##{@image.id}? This will clear its hash, remove its files, and permanently destroy it. This cannot be undone!"]
 
         = form_for @changeset, ~p"/images/#{@image}/hash", [method: "delete"], fn _f ->
           .field

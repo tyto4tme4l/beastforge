@@ -46,19 +46,35 @@ defmodule Philomena.DuplicateReports do
       [{:ok, %DuplicateReport{}}, ...]
 
   """
+
+  @doc """
+  Automated perceptual deduplication has been previously disabled to maximize
+  importer throughput and prevent CPU starvation at scale.
+  Exact duplicates are still 100% prevented by SHA-512 checksums.
+  """
+  def generate_reports(_source) do
+    []
+  end
+
+  
   def generate_reports(source) do
     source = Repo.preload(source, :intensity)
 
-    {source.intensity, source.image_aspect_ratio}
-    |> find_duplicates(dist: 0.2)
-    |> where([i, _it], i.id != ^source.id)
-    |> Repo.all()
-    |> Enum.map(fn target ->
-      create_duplicate_report(source, target, %{}, %{
-        "reason" => "Automated Perceptual dedupe match"
-      })
-    end)
+    if is_nil(source.intensity) or source.hidden_from_users do
+      []
+    else
+      {source.intensity, source.image_aspect_ratio}
+      |> find_duplicates(dist: 0.2)
+      |> where([i, _it], i.id != ^source.id and i.hidden_from_users == false)
+      |> Repo.all()
+      |> Enum.map(fn target ->
+        create_duplicate_report(source, target, %{}, %{
+          "reason" => "Automated Perceptual dedupe match"
+        })
+      end)
+    end
   end
+  
 
   @doc """
   Query for potential duplicate images based on intensity values and aspect ratio.
@@ -88,6 +104,7 @@ defmodule Philomena.DuplicateReports do
     from i in Image,
       inner_join: it in ImageIntensity,
       on: it.image_id == i.id,
+      where: i.hidden_from_users == false and is_nil(i.deletion_reason),
       where: it.nw >= ^(intensities.nw - dist) and it.nw <= ^(intensities.nw + dist),
       where: it.ne >= ^(intensities.ne - dist) and it.ne <= ^(intensities.ne + dist),
       where: it.sw >= ^(intensities.sw - dist) and it.sw <= ^(intensities.sw + dist),

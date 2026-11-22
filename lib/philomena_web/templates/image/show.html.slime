@@ -26,3 +26,7 @@
 
   #comments data-current-url=~p"/images/#{@image}/comments" data-loaded="true"
     = render PhilomenaWeb.Image.CommentView, "index.html", image: @image, comments: @comments, conn: @conn
+
+link rel="stylesheet" href="/autotagger/autotagger.css"
+script src="/autotagger/ort.min.js"
+script src="/autotagger/autotagger.js?v=2"

@@ -45,11 +45,10 @@ defmodule Philomena.Tags.LocalAutocomplete do
   - is not the same as the entry's tag id
   - of a sample of 100 images, appear simultaneously more than 50% of the time
   """
-  @spec get_associations(entry_list(), integer()) :: assoc_map()
-  def get_associations(tags, amount) do
-    tags
-    |> Enum.filter(&is_nil(&1.alias_name))
-    |> Map.new(&{&1.name, associated_tag_ids(&1, amount)})
+@spec get_associations(entry_list(), integer()) :: assoc_map()
+  def get_associations(_tags, _amount) do
+    # Option B: Return empty map instantly (0 database queries, 0% CPU)
+    %{}
   end
 
   defp top_tags(amount) do
@@ -80,7 +79,7 @@ defmodule Philomena.Tags.LocalAutocomplete do
       from it in Tagging,
         where: it.tag_id == ^entry.id,
         select: it.image_id,
-        order_by: [asc: fragment("random()")],
+        order_by: [desc: it.image_id],
         limit: 100
 
     # Select the tags from those images which have more uses than

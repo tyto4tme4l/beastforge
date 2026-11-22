@@ -105,6 +105,7 @@ defmodule Philomena.Images do
       |> Image.source_changeset(attrs, [], sources)
       |> Image.tag_changeset(attrs, [], tags)
       |> Image.dnp_changeset(attribution[:user])
+      |> check_daily_upload_limit(attribution[:user])
       |> Uploader.analyze_upload(attrs)
 
     Multi.new()
@@ -293,6 +294,61 @@ defmodule Philomena.Images do
       error ->
         error
     end
+  end
+
+@doc """
+  Completely nukes an image:
+  1. Decrements images_count on all its tags if active
+  2. Marks as deleted in database
+  3. Clears its hash so it can be re-uploaded
+  4. Destroys media files and search document
+  """
+  def nuke_image(%Image{} = image, user) do
+    # Step 1: If active, decrement tag counters and mark as deleted
+    image =
+      if not image.hidden_from_users do
+        # Fetch all attached tag IDs to decrement their counters
+        tag_ids =
+          Repo.all(
+            from it in "image_taggings",
+              where: it.image_id == ^image.id,
+              select: it.tag_id
+          )
+
+        if tag_ids != [] do
+          Repo.query!(
+            "UPDATE tags SET images_count = GREATEST(0, images_count - 1) WHERE id = ANY($1::bigint[]);",
+            [tag_ids]
+          )
+        end
+
+        image
+        |> Ecto.Changeset.change(%{
+          hidden_from_users: true,
+          deletion_reason: "Nuked by admin",
+          deleter_id: user.id
+        })
+        |> Repo.update!()
+      else
+        image
+      end
+
+    # Step 2: Clear hash so the image can be re-uploaded
+    _ = remove_hash(image)
+
+    # Step 3: Permanently destroy image contents and media storage files
+    result = destroy_image(image)
+
+    # Step 4: Purge from OpenSearch so no zombie documents linger
+    try do
+      :inets.start()
+      :httpc.request(:delete, {String.to_charlist("http://opensearch:9200/images/_doc/#{image.id}"), []}, [], [])
+      PhilomenaProxy.Http.post("http://opensearch:9200/images/_refresh", "", [])
+    rescue
+      _ -> :ok
+    end
+
+    result
   end
 
   @doc """
@@ -1591,4 +1647,35 @@ defmodule Philomena.Images do
     Notifications.clear_image_merge_notification(image, user)
     :ok
   end
+
+# Enforces daily upload limits for regular users
+  defp check_daily_upload_limit(changeset, %Philomena.Users.User{} = user) do
+    # Exempt staff and users explicitly marked with bypass_rate_limits
+    if user.role in ["admin", "moderator"] or user.bypass_rate_limits do
+      changeset
+    else
+      limit =
+        System.get_env("DAILY_UPLOAD_LIMIT", "10")
+        |> String.to_integer()
+
+      since = DateTime.utc_now() |> DateTime.add(-24 * 3600, :second)
+
+      upload_count =
+        Image
+        |> where([i], i.user_id == ^user.id and i.created_at >= ^since)
+        |> Repo.aggregate(:count, :id)
+
+      if upload_count >= limit do
+        Ecto.Changeset.add_error(
+          changeset,
+          :base,
+          "You have reached your daily upload limit of #{limit} images per 24 hours."
+        )
+      else
+        changeset
+      end
+    end
+  end
+
+  defp check_daily_upload_limit(changeset, _other), do: changeset
 end

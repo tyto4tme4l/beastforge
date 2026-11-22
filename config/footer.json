@@ -7,38 +7,37 @@
       "bold": true
     },
     {
-      "title": "Privacy Policy",
-      "url": "/pages/privacy",
-      "bold": true
-    },
-    {
       "title": "Tag Guidelines",
       "url": "/pages/tags",
       "bold": true
     },
     {
       "title": "About Uploading",
-      "url": "/pages/uploading"
-    },
-    {
-      "title": "Spoiler Guidelines",
-      "url": "/pages/spoilers"
+      "url": "/pages/uploading",
+      "bold": true
     },
     {
       "title": "Takedown Requests",
       "url": "/pages/takedowns"
     },
     {
-      "title": "Do-Not-Post List",
-      "url": "/dnp"
+      "title": "Privacy Policy",
+      "url": "/pages/privacy"
+    },
+    {
+      "title": "API Docs",
+      "url": "/pages/api"
+    },
+    {
+      "title": "Data Dumps",
+      "url": "/pages/data_dumps"
     }
   ],
   "Help & Information": [
     {
-      "title": "Changelog",
-      "url": "https://github.com/derpibooru/philomena/commits/master",
-      "bold": true,
-      "target": "_blank"
+      "title": "Start Here",
+      "url": "/pages/main-hub",
+      "bold": true
     },
     {
       "title": "FAQs",
@@ -46,8 +45,9 @@
       "bold": true
     },
     {
-      "title": "API Docs",
-      "url": "/pages/api"
+      "title": "Video Converter",
+      "url": "/converter",
+      "target": "_blank"
     },
     {
       "title": "Keyboard Shortcuts",
@@ -58,8 +58,9 @@
       "url": "/pages/advertising"
     },
     {
-      "title": "Onion Service",
-      "url": "/pages/onion"
+      "title": "Changelog",
+      "url": "https://github.com/derpibooru/philomena/commits/master",
+      "target": "_blank"
     }
   ],
   "Community": [
@@ -69,13 +70,14 @@
       "bold": true
     },
     {
-      "title": "Donations",
-      "url": "/pages/donations",
+      "title": "Site Staff List",
+      "url": "/staff",
       "bold": true
     },
     {
-      "title": "Site Staff List",
-      "url": "/staff"
+      "title": "Donations",
+      "url": "/pages/donations",
+      "bold": true
     },
     {
       "title": "Statistics",
@@ -84,11 +86,6 @@
     {
       "title": "About",
       "url": "/pages/about"
-    },
-    {
-      "title": "Twitter",
-      "url": "https://twitter.com/Derpibooru",
-      "target": "_blank"
     }
   ]
 }

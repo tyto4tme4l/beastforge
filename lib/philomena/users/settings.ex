@@ -10,8 +10,8 @@ defmodule Philomena.Users.Settings do
     belongs_to :user, Philomena.Users.User, primary_key: true
 
     field :spoiler_type, :string, default: "static"
-    field :theme, :string, default: "dark-blue"
-    field :images_per_page, :integer, default: 15
+    field :theme, :string, default: "dark-gray"
+    field :images_per_page, :integer, default: 50
     field :comments_per_page, :integer, default: 20
     field :show_sidebar_and_watched_images, :boolean, default: true
     field :fancy_tag_field_on_upload, :boolean, default: true
@@ -29,6 +29,7 @@ defmodule Philomena.Users.Settings do
     field :watched_images_exclude_str, :string, default: ""
     field :use_centered_layout, :boolean, default: true
     field :hide_vote_counts, :boolean, default: false
+    field :hide_legacy_stats, :boolean, default: false
     field :delay_home_images, :boolean, default: true
     field :staff_delay_home_images, :boolean, default: false
     field :borderless_tags, :boolean, default: false
@@ -52,6 +53,7 @@ defmodule Philomena.Users.Settings do
       :watched_images_exclude_str,
       :use_centered_layout,
       :hide_vote_counts,
+      :hide_legacy_stats,
       :comments_newest_first,
       :watch_on_reply,
       :watch_on_upload,
@@ -75,6 +77,7 @@ defmodule Philomena.Users.Settings do
       :no_spoilered_in_watched,
       :use_centered_layout,
       :hide_vote_counts,
+      :hide_legacy_stats,
       :watch_on_reply,
       :watch_on_upload,
       :watch_on_new_topic,

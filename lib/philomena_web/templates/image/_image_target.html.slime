@@ -12,9 +12,18 @@
     ' .
 
   = if size == :full and not embed_display do
-    .image-target.hidden.image-show data-scaled=scaled_value(@conn.assigns.current_user) data-uris=JSON.encode!(thumb_urls(@image, can?(@conn, :hide, @image))) data-width=@image.image_width data-height=@image.image_height data-image-size=@image.image_size data-mime-type=@image.image_mime_type
-      = if @image.image_mime_type == "video/webm" do
-        video controls=true
+    = if @image.image_mime_type in ["video/webm", "video/mp4"] do
+      input.video-zoom-checkbox#video-zoom-toggle type="checkbox"
+      .video-zoom-bar style="margin-bottom: 10px; text-align: center;"
+        label.button.button--inline.button--secondary for="video-zoom-toggle" style="cursor: pointer; user-select: none;"
+          i.fas.fa-search-plus.zoom-icon-expand>
+          i.fas.fa-compress-alt.zoom-icon-collapse>
+          span.zoom-label-expand Zoomed-in View
+          span.zoom-label-collapse Default View
+
+    .image-target.hidden.image-show data-scaled=scaled_value(@conn.assigns.current_user) data-uris=JSON.encode!(thumb_urls(@image, can?(@conn, :hide, @image))) data-width=@image.image_width data-height=@image.image_height data-image-size=@image.image_size data-mime-type=@image.image_mime_type style="--video-native-width: #{@image.image_width}px;"
+      = if @image.image_mime_type in ["video/webm", "video/mp4"] do
+        video controls=true style="--video-native-width: #{@image.image_width}px;"
       - else
         picture
   - else

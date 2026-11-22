@@ -95,13 +95,13 @@ defmodule PhilomenaWeb.LayoutView do
       do: static_path(conn, "/css/#{theme}.css")
 
   def stylesheet_path(_conn, _user),
-    do: ~p"/css/dark-blue.css"
+    do: ~p"/css/dark-gray.css"
 
   def light_stylesheet_path(_conn),
-    do: ~p"/css/light-blue.css"
+    do: ~p"/css/light-gray.css"
 
   def theme_name(%{settings: %{theme: theme}}), do: theme
-  def theme_name(_user), do: "dark-blue"
+  def theme_name(_user), do: "dark-gray"
 
   def hide_staff_tools_attribute(conn),
     do: if(conn.cookies["hide_staff_tools"] == "true", do: "true", else: "false")

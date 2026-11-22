@@ -62,8 +62,8 @@ h3 Associated tag
     = if not verified?(@artist_link) do
       ' &bull;
       = if contacted?(@artist_link) do
-        ' Artist contacted
+        ' Creator contacted
       - else
-        = link "Artist contacted", to: ~p"/admin/artist_links/#{@artist_link}/contact", method: :post
+        = link "Creator contacted", to: ~p"/admin/artist_links/#{@artist_link}/contact", method: :post
 
 = link "Back", to: ~p"/profiles/#{@user}/artist_links"

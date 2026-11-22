@@ -11,6 +11,9 @@
   button.communication__toolbar__button tabindex="-1" type="button" title="mark as spoiler (ctrl+s)" data-syntax-id="spoiler"
     span.spoiler-revealed
       | spoiler
+  button.communication__toolbar__button tabindex="-1" type="button" title="collapsible section" data-syntax-id="section"
+    span
+      | section
   button.communication__toolbar__button tabindex="-1" type="button" title="code formatting (ctrl+e)" data-syntax-id="code"
     code
       | code

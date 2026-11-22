@@ -11,7 +11,7 @@ config :philomena, Philomena.Repo, show_sensitive_data_on_connection_error: true
 # with vite to recompile .js and .css sources.
 config :philomena, PhilomenaWeb.Endpoint,
   http: [port: 4000],
-  debug_errors: true,
+  debug_errors: false,
   code_reloader: true,
   check_origin: false,
   watchers: [
@@ -81,10 +81,11 @@ config :philomena, pwned_passwords: false
 config :philomena, csp_relaxed: true
 
 # Enable Vite HMR
-config :philomena, vite_reload: true
+config :philomena, vite_reload: false
 
-# Do not include metadata nor timestamps in development logs
+# Do not include metadata nor timestamps in development logs (suppress logs)
 config :logger, :console, format: "[$level] $message\n"
+config :logger, level: :info
 
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.

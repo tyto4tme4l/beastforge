@@ -31,6 +31,7 @@ import { setupTimestamps } from './timeago';
 import { setupImageUpload } from './upload';
 import { setupSearch } from './search';
 import { setupToolbar } from './markdowntoolbar';
+import { setupDbExportManifest } from './db_export';
 import { hideStaffTools } from './staffhider';
 import { pollOptionCreator } from './poll';
 import { warnAboutPMs } from './pmwarning';
@@ -61,6 +62,7 @@ whenReady(
   setupImageUpload,
   setupSearch,
   setupToolbar,
+  setupDbExportManifest,
   hideStaffTools,
   pollOptionCreator,
   warnAboutPMs,

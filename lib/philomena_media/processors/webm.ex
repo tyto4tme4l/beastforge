@@ -11,10 +11,13 @@ defmodule PhilomenaMedia.Processors.Webm do
 
   @behaviour Processor
 
+  @skip_sizes [:large, :tall, :medium]
+
   @spec versions(Processors.version_list()) :: [Processors.version_filename()]
   def versions(sizes) do
-    webm_versions = Enum.map(sizes, fn {name, _} -> "#{name}.webm" end)
-    mp4_versions = Enum.map(sizes, fn {name, _} -> "#{name}.mp4" end)
+    thumb_sizes = Enum.reject(sizes, fn {name, _} -> name in @skip_sizes end)
+    webm_versions = Enum.map(thumb_sizes, fn {name, _} -> "#{name}.webm" end)
+    mp4_versions = Enum.map(thumb_sizes, fn {name, _} -> "#{name}.mp4" end)
 
     gif_versions =
       sizes
@@ -35,13 +38,15 @@ defmodule PhilomenaMedia.Processors.Webm do
 
     {:ok, intensities} = Intensities.file(preview)
 
-    scaled = Enum.flat_map(versions, &scale(decoder, stripped, duration, dimensions, &1))
-    mp4 = [{:copy, mp4, "full.mp4"}]
+    scaled =
+      versions
+      |> Enum.reject(fn {name, _} -> name in @skip_sizes end)
+      |> Enum.flat_map(&scale(decoder, stripped, duration, dimensions, &1))
 
     [
       replace_original: stripped,
       intensities: intensities,
-      thumbnails: scaled ++ mp4 ++ [{:copy, preview, "rendered.png"}]
+      thumbnails: scaled ++ [{:copy, mp4, "full.mp4"}, {:copy, preview, "rendered.png"}]
     ]
   end
 
@@ -86,20 +91,32 @@ defmodule PhilomenaMedia.Processors.Webm do
 
   defp scale(decoder, file, duration, dimensions, {thumb_name, target_dimensions}) do
     {webm, mp4} = scale_videos(decoder, file, dimensions, target_dimensions)
+    valid_webm = safe_fallback(webm, file)
 
     if thumb_name in [:thumb, :thumb_small, :thumb_tiny] do
       gif = scale_gif(decoder, file, duration, dimensions, target_dimensions)
 
       [
-        {:copy, webm, "#{thumb_name}.webm"},
+        {:copy, valid_webm, "#{thumb_name}.webm"},
         {:copy, mp4, "#{thumb_name}.mp4"},
         {:copy, gif, "#{thumb_name}.gif"}
       ]
     else
       [
-        {:copy, webm, "#{thumb_name}.webm"},
+        {:copy, valid_webm, "#{thumb_name}.webm"},
         {:copy, mp4, "#{thumb_name}.mp4"}
       ]
+    end
+  end
+
+  # Checks if the generated video has actual data; falls back to the original if empty
+  defp safe_fallback(generated_path, original_path) do
+    case File.stat(generated_path) do
+      {:ok, %{size: size}} when size > 1024 ->
+        generated_path
+
+      _ ->
+        original_path
     end
   end
 
@@ -117,6 +134,7 @@ defmodule PhilomenaMedia.Processors.Webm do
         decoder,
         "-i",
         file,
+        "-an",
         "-c:v",
         "libvpx",
         "-deadline",
@@ -125,21 +143,18 @@ defmodule PhilomenaMedia.Processors.Webm do
         "5",
         "-auto-alt-ref",
         "0",
-        "-qmin",
-        "15",
-        "-qmax",
-        "35",
+        "-b:v",
+        "350k",
         "-crf",
-        "31",
+        "33",
         "-vf",
         filter,
         "-threads",
         "4",
         "-max_muxing_queue_size",
         "4096",
-        "-slices",
-        "8",
         webm,
+        "-an",
         "-c:v",
         "libx264",
         "-pix_fmt",
@@ -147,11 +162,13 @@ defmodule PhilomenaMedia.Processors.Webm do
         "-profile:v",
         "main",
         "-preset",
-        "medium",
+        "fast",
         "-crf",
-        "18",
-        "-b:v",
-        "5M",
+        "26",
+        "-maxrate",
+        "500k",
+        "-bufsize",
+        "1M",
         "-vf",
         filter,
         "-threads",
@@ -186,9 +203,11 @@ defmodule PhilomenaMedia.Processors.Webm do
         "-preset",
         "medium",
         "-crf",
-        "18",
-        "-b:v",
-        "5M",
+        "23",
+        "-maxrate",
+        "3M",
+        "-bufsize",
+        "6M",
         "-vf",
         filter,
         "-threads",
@@ -225,8 +244,6 @@ defmodule PhilomenaMedia.Processors.Webm do
         file
       ])
 
-    # Mediatools verifies that we only have one video stream and that it is
-    # one of the supported formats, so the following is safe to do:
     case output do
       "vp8\n" -> "libvpx"
       "vp9\n" -> "libvpx-vp9"
@@ -240,7 +257,6 @@ defmodule PhilomenaMedia.Processors.Webm do
   end
 
   # x264 requires image dimensions to be a multiple of 2
-  # -2 = ~1
   defp box_dimensions({width, height}, {target_width, target_height}) do
     ratio = min(target_width / width, target_height / height)
     new_width = min(max(trunc(width * ratio) &&& -2, 2), target_width)

@@ -4,10 +4,10 @@ header.header
       #js-burger-toggle.hide-desktop
         a.header__link href="#"
           i.fa.fa-bars
-      a.header__link href="/"
-        i.fa.fw.favicon-home
+      a.header__link.flex.flex--centered href="/"
+        img.header__logo-img src="/images/logo.png" alt="BeastForge" width="32" height="32"
         span.fa__text.hide-limited-desktop.hide-mobile
-          ' Derpibooru
+          ' BeastForge
       a.header__link.hide-mobile href="/images/new" title="Upload"
         i.fa.fa-upload
 

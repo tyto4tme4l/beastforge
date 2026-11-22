@@ -84,6 +84,14 @@ h1 Content Settings
           )
 
           = field_with_help( \
+            "Hide legacy archive stats (scores and faves from e6ai, blep.art, Floofgens)",
+            [ \
+              checkbox(fs, :hide_legacy_stats, class: "checkbox"),
+              label(fs, :hide_legacy_stats),
+            ] \
+          )
+
+          = field_with_help( \
             "Removes the border of the tags",
             [ \
               checkbox(fs, :borderless_tags, class: "checkbox"),
@@ -251,15 +259,15 @@ h1 Content Settings
         "start/end frames, and don't support transparency.", \
         [ \
           checkbox(f, :serve_webm, checked: @conn.cookies["serve_webm"] == "true", class: "checkbox"), \
-          label(f, :serve_webm, "Serve WebM"), \
+          label(f, :serve_webm, "Serve WebM instead of GIF"), \
         ] \
       )
 
       = field_with_help( \
-        "Use video thumbnails for WebM videos. Does not apply to GIF images.", \
+        "Use the whole video length in thumbnails instead of a short preview for WebM videos. Does not apply to GIF images.", \
         [ \
           checkbox(f, :webm, checked: @conn.cookies["webm"] == "true", class: "checkbox"), \
-          label(f, :webm, "Use video thumbnails"), \
+          label(f, :webm, "Use full video length in thumbnails"), \
         ] \
       )
 
@@ -280,6 +288,14 @@ h1 Content Settings
       )
 
       = field_with_help( \
+        "Enable the in-browser AI autotag assistant on image upload and tag editing forms.", \
+        [ \
+          tag(:input, type: "checkbox", class: "checkbox", id: "js-setting-autotagger", checked: @conn.cookies["bf_autotagger_enabled"] != "false"), \
+          content_tag(:label, "Enable AI tag assistant", for: "js-setting-autotagger"), \
+        ] \
+      )
+
+      = field_with_help( \
         "Don't attempt to filter tag suggestions using your current filter.", \
         [ \
           checkbox(f, :unfilter_tag_suggestions, checked: @conn.cookies["unfilter_tag_suggestions"] == "true", class: "checkbox"), \
@@ -295,16 +311,10 @@ h1 Content Settings
         ] \
       )
 
-      = field_with_help( \
-        "Show streams marked as NSFW on the channels page.", \
-        [ \
-          checkbox(f, :chan_nsfw, checked: @conn.cookies["chan_nsfw"] == "true", class: "checkbox"), \
-          label(f, :chan_nsfw, "Show NSFW channels"), \
-        ] \
-      )
+
 
       .field
-        => checkbox f, :enable_search_ac, checked: @conn.cookies["enable_search_ac"] == "true", class: "checkbox"
+        => checkbox f, :enable_search_ac, checked: @conn.cookies["enable_search_ac"] != "false", class: "checkbox"
         => label f, :enable_search_ac, "Enable search auto-completion"
 
       .autocomplete-settings class=if(@conn.cookies["enable_search_ac"] != "true", do: "hidden", else: "")
@@ -318,7 +328,7 @@ h1 Content Settings
               "Hide search history in auto-completion"
 
         .autocomplete-search-history-settings[
-          class=if(@conn.cookies["autocomplete_search_history_hidden"] == "true", do: "hidden", else: "")
+          class=if(@conn.cookies["autocomplete_search_history_hidden"] != "false", do: "hidden", else: "")
         ]
           .field
             => number_input f,
@@ -362,3 +372,5 @@ h1 Content Settings
   br
   = submit "Save My Settings", class: "button"
   br
+
+script src="/autotagger/autotagger.js?v=8"

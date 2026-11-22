@@ -93,7 +93,8 @@ defmodule PhilomenaProxy.Http do
       connect_options: connect_options(),
       inet6: true,
       into: &stream_response_callback/2,
-      decode_body: false
+      decode_body: false,
+      receive_timeout: 120_000
     ]
     |> Keyword.merge(Application.get_env(:philomena, :req_options, []))
     |> Req.new()

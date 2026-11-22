@@ -65,6 +65,11 @@ defmodule Philomena.Images.Image do
     field :faves_count, :integer, default: 0
     field :upvotes_count, :integer, default: 0
     field :downvotes_count, :integer, default: 0
+    field :legacy_score, :integer
+    field :legacy_upvotes, :integer
+    field :legacy_downvotes, :integer
+    field :legacy_faves, :integer
+    field :legacy_source, :string
     field :source_url, :string
     field :description, :string, default: ""
     field :image_sha512_hash, :string

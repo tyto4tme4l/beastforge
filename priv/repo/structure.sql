@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict zz99oBd8amrHGQvE3YMjAT6I0qnHMNmvLb5mJBfFO1JqTafWgFbLRcafUqyghEC
+\restrict mV2nG009rAPLUSWlWxFkLuI0MUFmCN2hfd4at0FIQyUFSfPzjocCnzKMgEEpHmy
 
 -- Dumped from database version 18.4
--- Dumped by pg_dump version 18.4
+-- Dumped by pg_dump version 18.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1025,7 +1025,12 @@ CREATE TABLE public.images (
     description character varying DEFAULT ''::character varying NOT NULL,
     scratchpad character varying,
     approved boolean DEFAULT false NOT NULL,
-    image_orig_size integer NOT NULL
+    image_orig_size integer NOT NULL,
+    legacy_score integer,
+    legacy_upvotes integer,
+    legacy_downvotes integer,
+    legacy_faves integer,
+    legacy_source character varying(255)
 );
 
 
@@ -2110,7 +2115,7 @@ ALTER SEQUENCE public.user_name_changes_id_seq OWNED BY public.user_name_changes
 CREATE TABLE public.user_settings (
     user_id bigint NOT NULL,
     spoiler_type character varying(255) DEFAULT 'static'::character varying NOT NULL,
-    theme character varying(255) DEFAULT 'dark-blue'::character varying NOT NULL,
+    theme character varying(255) DEFAULT 'dark-gray'::character varying NOT NULL,
     images_per_page integer DEFAULT 15 NOT NULL,
     comments_per_page integer DEFAULT 20 NOT NULL,
     show_sidebar_and_watched_images boolean DEFAULT true NOT NULL,
@@ -2134,7 +2139,8 @@ CREATE TABLE public.user_settings (
     borderless_tags boolean DEFAULT false NOT NULL,
     rounded_tags boolean DEFAULT false NOT NULL,
     created_at timestamp(0) without time zone NOT NULL,
-    updated_at timestamp(0) without time zone NOT NULL
+    updated_at timestamp(0) without time zone NOT NULL,
+    hide_legacy_stats boolean DEFAULT false NOT NULL
 );
 
 
@@ -2240,7 +2246,7 @@ CREATE TABLE public.users (
     role character varying DEFAULT 'user'::character varying NOT NULL,
     avatar character varying,
     spoiler_type character varying DEFAULT 'static'::character varying NOT NULL,
-    theme character varying DEFAULT 'dark-blue'::character varying NOT NULL,
+    theme character varying DEFAULT 'dark-gray'::character varying NOT NULL,
     images_per_page integer DEFAULT 15 NOT NULL,
     show_large_thumbnails boolean DEFAULT true NOT NULL,
     show_sidebar_and_watched_images boolean DEFAULT true NOT NULL,
@@ -5924,7 +5930,7 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-\unrestrict zz99oBd8amrHGQvE3YMjAT6I0qnHMNmvLb5mJBfFO1JqTafWgFbLRcafUqyghEC
+\unrestrict mV2nG009rAPLUSWlWxFkLuI0MUFmCN2hfd4at0FIQyUFSfPzjocCnzKMgEEpHmy
 
 INSERT INTO public."schema_migrations" (version) VALUES (20200503002523);
 INSERT INTO public."schema_migrations" (version) VALUES (20200607000511);
@@ -5967,3 +5973,5 @@ INSERT INTO public."schema_migrations" (version) VALUES (20260719123608);
 INSERT INTO public."schema_migrations" (version) VALUES (20260719123609);
 INSERT INTO public."schema_migrations" (version) VALUES (20260719123610);
 INSERT INTO public."schema_migrations" (version) VALUES (20260719123611);
+INSERT INTO public."schema_migrations" (version) VALUES (20261119174532);
+INSERT INTO public."schema_migrations" (version) VALUES (20261119223855);

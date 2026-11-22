@@ -1,24 +1,18 @@
 = form_for @changeset, ~p"/images", [multipart: true], fn f ->
-  .dnp-warning
-    h4
-      ' Read the
-      a> href="/rules" site rules
-      ' and check our
-      a> href="/dnp" do-not-post list
-    p
-      ' Don't post content the artist doesn't want here (or shared in general),
-      strong including commercial content.
-
   p
     strong
       ' Please check it isn't already here with
-      a href="/search/reverse" reverse search.
+      a href="/search/reverse" target="_blank" reverse search.
 
   / todo: extract this
   h4 Select an image
   .image-other
     #js-image-upload-previews
     p Upload a file from your computer, or provide a link to the page containing the image and click Fetch.
+    p
+      ' Note: Only .webm video files are supported. Have an .mp4? Use our
+      a href="/converter" target="_blank" in-browser MP4 to WebM converter
+      ' .
     .field
       = file_input f, :image, class: "input js-scraper"
       = error_tag f, :image
@@ -65,7 +59,6 @@
       ' tags, including ratings and applicable artist tags
 
     = render PhilomenaWeb.TagView, "_tag_editor.html", f: f, name: :tag_input, type: :upload
-    = error_tag f, :tag_input
 
     button.button.button--state-success.button--separate-left.button--bold id="tagsinput-save" type="button" title="This button saves the tags listed above to your browser, allowing you to retrieve them again by clicking the Load button" Save
     button.button.button--state-warning.button--separate-left.button--bold id="tagsinput-load" type="button" title="This button loads any saved tags from your browser" Load
@@ -89,3 +82,7 @@
 
   .actions
     = submit "Upload", class: "button input--separate-top", autocomplete: "off"
+
+link rel="stylesheet" href="/autotagger/autotagger.css?v=7"
+script src="/autotagger/ort.min.js"
+script src="/autotagger/autotagger.js?v=7"

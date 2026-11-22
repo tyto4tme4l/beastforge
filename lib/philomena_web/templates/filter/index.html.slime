@@ -2,9 +2,9 @@
   .block.block--fixed.block--warning
     h2 Content Safety
     p
-      ' By default, content that is safe and suitable for all ages is all you'll see on the site, and how most of our users browse. The default filters focus on art, so filter out things like memes and what some users would consider "spam".
+      ' By default, content that is safe and suitable for all ages is all you'll see on the site. The default filters focus on art, so filter out things like memes and what some users would consider "spam".
     p
-      ' Filters let you customize what content you see on the site. This means that with the appropriate filter selected, you can access content which is not suitable for everyone, such as sexually explicit, grimdark or gory material.
+      ' Filters let you customize what content you see on the site. This means that with the appropriate filter selected, you can access content which is not suitable for everyone, such as sexually explicit, grimdark, or gory material.
     p
       strong
         ' By changing away from the default filters, you accept you are legally permitted to view this content in your jurisdiction. If in doubt, stick with the recommended default filters.
@@ -22,7 +22,7 @@
       ' active filter
     ' and will affect how you see the site. You can edit filters if you own them - you can create a filter from scratch with the link under "My Filters" (if you're logged in, of course) or by clicking "Customize", which will copy an existing filter for you to edit.
   p
-    ' By default all the filters you create are private and only visible by you. You can have as many as you like and switch between them instantly with no limits. You can also create a public filter, which can be seen and used by any user on the site, allowing you to share useful filters with others.
+    ' By default, all the filters you create are private and only visible by you. You can have as many as you like and switch between them instantly with no limits. You can also create a public filter, which can be seen and used by any user on the site, allowing you to share useful filters with others.
 
   = if !@conn.params["fq"] do
     h2 My Filters

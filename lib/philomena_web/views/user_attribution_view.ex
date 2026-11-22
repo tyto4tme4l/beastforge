@@ -42,7 +42,7 @@ defmodule PhilomenaWeb.UserAttributionView do
     if not is_nil(object.user) and reveal_anon? do
       "#{object.user.name} (##{hash}, hidden)"
     else
-      "Background Pony ##{hash}"
+      "Anonymous ##{hash}"
     end
   end
 
@@ -54,7 +54,7 @@ defmodule PhilomenaWeb.UserAttributionView do
 
     content =
       if anon or is_nil(object.user.avatar) do
-        AvatarGeneratorView.generated_avatar(name(object))
+        img_tag("/images/no_avatar.svg")
       else
         img_tag(avatar_url_root() <> "/" <> object.user.avatar)
       end

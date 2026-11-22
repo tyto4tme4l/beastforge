@@ -5,7 +5,7 @@ import { clearEl, makeEl } from './utils/dom';
 function insertCaptcha(_event: Event, target: HTMLInputElement) {
   const parentElement = assertNotNull(target.parentElement);
 
-  const script = makeEl('script', { src: 'https://hcaptcha.com/1/api.js', async: true, defer: true });
+  const script = makeEl('script', { src: 'https://challenges.cloudflare.com/turnstile/v0/api.js?compat=hcaptcha', async: true, defer: true });
   const frame = makeEl('div', { className: 'h-captcha' });
 
   frame.dataset.sitekey = target.dataset.sitekey;

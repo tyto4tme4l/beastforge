@@ -53,9 +53,15 @@ defmodule PhilomenaWeb.ImageNavigator do
   end
 
   defp maybe_search_after(module, body, options, queryable, true) do
-    module
-    |> Search.search_definition(body, options)
-    |> Search.search_records_with_hits(queryable)
+    try do
+      module
+      |> Search.search_definition(body, options)
+      |> Search.search_records_with_hits(queryable)
+    rescue
+      _ -> []
+    catch
+      :exit, _ -> []
+    end
   end
 
   defp maybe_search_after(_module, _body, _options, _queryable, _false) do

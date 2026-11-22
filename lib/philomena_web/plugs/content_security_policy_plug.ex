@@ -74,9 +74,9 @@ defmodule PhilomenaWeb.ContentSecurityPolicyPlug do
     defp default_connect_src(host), do: "'self' #{host}:5173 ws://#{host}:5173"
     defp default_style_src, do: "'self' 'unsafe-inline'"
   else
-    defp default_connect_src(_host), do: "'self'"
-    defp default_script_src(_host), do: "'self'"
-    defp default_style_src, do: "'self'"
+    defp default_connect_src(_host), do: "'self' https://challenges.cloudflare.com https://media.beastforge.org"
+    defp default_script_src(_host), do: "'self' 'wasm-unsafe-eval'"
+    defp default_style_src, do: "'self' 'unsafe-inline'"
   end
 
   defp to_uri(host) when host in [nil, ""], do: ""

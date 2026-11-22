@@ -41,6 +41,10 @@ const markdownSyntax: Record<string, SyntaxHandler> = {
     action: wrapSelection,
     options: { prefix: '||', shortcutKey: keys.KeyS },
   },
+  section: {
+    action: insertSection,
+    options: {},
+  },
   code: {
     action: wrapSelectionOrLines,
     options: {
@@ -266,6 +270,19 @@ function escapeSelection(textarea: HTMLTextAreaElement, options: Partial<SyntaxH
     return {
       newText,
       caretOffset: newText.length,
+    };
+  });
+}
+
+function insertSection(textarea: HTMLTextAreaElement) {
+  transformSelection(textarea, (selectedText: string): TransformResult => {
+    const cleanTitle = selectedText.replace(/[\r\n]+/g, ' ').trim();
+    const openTag = cleanTitle ? `[section=${cleanTitle}]` : '[section]';
+    const newText = `${openTag}[/section]`;
+
+    return {
+      newText,
+      caretOffset: openTag.length,
     };
   });
 }

@@ -44,7 +44,11 @@ defmodule PhilomenaWeb.ScraperPlug do
     put_in(conn.params[params_name][params_key], fake_upload)
   end
 
-  defp maybe_fixup_params(_response, _url, _opts, conn), do: conn
+  defp maybe_fixup_params(response, url, _opts, conn) do
+    require Logger
+    Logger.warning("ScraperPlug failed to download #{url}: #{inspect(response)}")
+    conn
+  end
 
   defp extract_filename(url, headers) do
     name =

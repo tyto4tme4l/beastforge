@@ -3,6 +3,8 @@ defmodule PhilomenaWeb.Admin.Batch.TagController do
 
   alias Philomena.Tags.Tag
   alias Philomena.Images
+  alias Philomena.Images.Image
+  alias PhilomenaQuery.Search
   alias PhilomenaWeb.IntegerId
   alias Philomena.Repo
   import Ecto.Query
@@ -46,6 +48,9 @@ defmodule PhilomenaWeb.Admin.Batch.TagController do
 
     case Images.batch_update(image_ids, added_tags, removed_tags, attributes) do
       {:ok, matched_ids} ->
+        # Synchronously reindex modified images in OpenSearch
+        reindex_batch(matched_ids)
+
         # Ids which parsed but matched no existing, non-hidden image were
         # never touched by the batch, so they are reported as failed.
         unmatched_ids = image_ids -- matched_ids
@@ -106,5 +111,21 @@ defmodule PhilomenaWeb.Admin.Batch.TagController do
       body: "Batch tagged '#{data.tag_list}' on #{data.image_count} images",
       subject_path: ~p"/profiles/#{data.user}"
     }
+  end
+
+  defp reindex_batch([]), do: :ok
+
+  defp reindex_batch(matched_ids) do
+    query =
+      from i in Image,
+        where: i.id in ^matched_ids,
+        preload: ^Images.indexing_preloads()
+
+    Search.reindex(query, Image, batch_size: 100)
+  rescue
+    e ->
+      require Logger
+      Logger.error("OpenSearch reindex failed during batch tag update: #{inspect(e)}")
+      :error
   end
 end

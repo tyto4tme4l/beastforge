@@ -22,10 +22,8 @@
 
         .field
           = label f, :tag_input do
-            ' Separate tags with commas. Use 'artist:name' tags to identify artists. Got questions? Check the
-            a> href="/pages/tags" tag guidelines
-            ' or the
-            a href="/pages/spoilers" spoiler guidelines
+            ' Separate tags with commas. Use 'creator:name' tags to identify creators. Got questions? Check the
+            a> href="/pages/tags" Tag Help
             ' .
 
           = render PhilomenaWeb.TagView, "_tag_editor.html", f: f, name: :tag_input, type: :edit, extra: [value: tag_input]
@@ -79,3 +77,7 @@
             | )
     .block__content
       = render PhilomenaWeb.TagView, "_tag_list.html", tags: tags, conn: @conn
+
+link rel="stylesheet" href="/autotagger/autotagger.css?v=7"
+script src="/autotagger/ort.min.js"
+script src="/autotagger/autotagger.js?v=7"

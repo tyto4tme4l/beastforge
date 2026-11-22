@@ -7,6 +7,10 @@ defmodule PhilomenaWeb.ImageSorter do
     faves
     downvotes
     upvotes
+    legacy_score
+    legacy_upvotes
+    legacy_downvotes
+    legacy_faves
     width
     height
     score

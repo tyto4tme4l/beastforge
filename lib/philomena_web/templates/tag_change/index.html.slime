@@ -28,7 +28,9 @@
 
   .fieldlabel
     ' For more information, see the
-    a href="/pages/search_syntax" search syntax documentation
+    a href="/pages/search_syntax" Search Syntax Help
+    '  and
+    a href="/pages/tags" Tag Help
     ' . Wildcards are supported in all literal fields.
 
   br

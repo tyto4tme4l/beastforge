@@ -7,6 +7,9 @@ defmodule PhilomenaWeb.ImageView do
   def show_vote_counts?(%{settings: %{hide_vote_counts: true}}), do: false
   def show_vote_counts?(_user), do: true
 
+  def show_legacy_stats?(%{settings: %{hide_legacy_stats: true}}), do: false
+  def show_legacy_stats?(_user), do: true
+
   def title_text(image) do
     tags = Tag.display_order(image.tags) |> Enum.map_join(", ", & &1.name)
 
@@ -48,10 +51,15 @@ defmodule PhilomenaWeb.ImageView do
   def thumb_urls(image, show_hidden) do
     Thumbnailer.thumbnail_versions()
     |> Map.new(fn {name, {width, height}} ->
-      if image.image_width > width or image.image_height > height do
-        {name, thumb_url(image, show_hidden, name)}
-      else
-        {name, thumb_url(image, show_hidden, :full)}
+      cond do
+        image.image_mime_type == "video/webm" and name in [:large, :tall, :medium] ->
+          {name, thumb_url(image, show_hidden, :full)}
+
+        image.image_width > width or image.image_height > height ->
+          {name, thumb_url(image, show_hidden, name)}
+
+        true ->
+          {name, thumb_url(image, show_hidden, :full)}
       end
     end)
     |> append_full_url(image, show_hidden)
@@ -61,10 +69,15 @@ defmodule PhilomenaWeb.ImageView do
   def select_version(image, version_name) do
     Thumbnailer.thumbnail_versions()
     |> Map.new(fn {name, {width, height}} ->
-      if image.image_width > width or image.image_height > height do
-        {name, version_name}
-      else
-        {name, :full}
+      cond do
+        image.image_mime_type == "video/webm" and name in [:large, :tall, :medium] ->
+          {name, :full}
+
+        image.image_width > width or image.image_height > height ->
+          {name, version_name}
+
+        true ->
+          {name, :full}
       end
     end)
     |> Map.get(version_name, :full)
@@ -100,10 +113,15 @@ defmodule PhilomenaWeb.ImageView do
       ) do
     {max_w, max_h} = Thumbnailer.thumbnail_versions()[name]
 
-    if w > max_w or h > max_h do
-      {thumb_url(image, show_hidden, name), thumb_dimensions(ar, max_w, max_h)}
-    else
-      {thumb_url(image, show_hidden, :full), {w, h}}
+    cond do
+      image.image_mime_type == "video/webm" and name in [:large, :tall, :medium] ->
+        {thumb_url(image, show_hidden, :full), {w, h}}
+
+      w > max_w or h > max_h ->
+        {thumb_url(image, show_hidden, name), thumb_dimensions(ar, max_w, max_h)}
+
+      true ->
+        {thumb_url(image, show_hidden, :full), {w, h}}
     end
   end
 
@@ -180,6 +198,11 @@ defmodule PhilomenaWeb.ImageView do
       faves: image.faves_count,
       upvotes: image.upvotes_count,
       downvotes: image.downvotes_count,
+      legacy_score: image.legacy_score,
+      legacy_upvotes: image.legacy_upvotes,
+      legacy_downvotes: image.legacy_downvotes,
+      legacy_faves: image.legacy_faves,
+      legacy_source: image.legacy_source,
       comment_count: image.comments_count,
       created_at: DateTime.to_iso8601(image.created_at),
       source_url:
@@ -275,6 +298,11 @@ defmodule PhilomenaWeb.ImageView do
       faves: image.faves_count,
       upvotes: image.upvotes_count,
       downvotes: image.downvotes_count,
+      legacy_score: image.legacy_score,
+      legacy_upvotes: image.legacy_upvotes,
+      legacy_downvotes: image.legacy_downvotes,
+      legacy_faves: image.legacy_faves,
+      legacy_source: image.legacy_source,
       comment_count: image.comments_count,
       created_at: image.created_at,
       first_seen_at: image.first_seen_at,

@@ -1,8 +1,4 @@
 = if is_nil(@conn.assigns.current_user) do
-  - challenge = challenge_name(@name)
-
-  .field.js-captcha-box
-    br
-    => checkbox :captcha, challenge, class: "js-captcha", value: 0, autocomplete: "off", data: [sitekey: hcaptcha_site_key()]
-    = label :captcha, challenge, "I am not a robot!"
-    br
+  .field.field--inline.cf-turnstile-wrap
+    script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async=true defer=true
+    .cf-turnstile data-sitekey=hcaptcha_site_key() data-theme="dark"

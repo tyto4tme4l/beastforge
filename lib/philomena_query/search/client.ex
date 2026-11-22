@@ -8,7 +8,7 @@ defmodule PhilomenaQuery.Search.Client do
     This is used by bulk APIs.
   """
 
-  @receive_timeout 30_000
+  @receive_timeout 60_000
 
   @type list_or_map :: list() | map()
   @type result :: {:ok, Req.Response.t()} | {:error, Exception.t()}
@@ -52,7 +52,12 @@ defmodule PhilomenaQuery.Search.Client do
     do: [Enum.map_intersperse(body, "\n", &JSON.encode_to_iodata!(&1)), "\n"]
 
   defp encode_options,
-    do: [headers: request_headers(), receive_timeout: @receive_timeout]
+    do: [
+      headers: request_headers(),
+      receive_timeout: @receive_timeout,
+      finch: [pool_timeout: 30_000],
+      retry: :safe_transient
+    ]
 
   defp encode_options(body),
     do: Keyword.merge(encode_options(), body: encode_body(body))

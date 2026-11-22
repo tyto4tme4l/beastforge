@@ -12,19 +12,27 @@
     .stretched-mobile-links
       a.interaction--fave href="#" rel="nofollow" data-image-id=@image.id
         span.favorites> title="Favorites" data-image-id=@image.id = @image.faves_count
+        = if show_legacy_stats?(@conn.assigns.current_user) and not is_nil(@image.legacy_faves) do
+          span.legacy-stat> title="Legacy favorites (#{@image.legacy_source || "archive"})" = "(#{@image.legacy_faves})"
         span.fave-span title="Fave!"
           i.fa.fa-star
       a.interaction--upvote href="#" rel="nofollow" data-image-id=@image.id
         = if show_vote_counts?(@conn.assigns.current_user) do
           span.upvotes> title="Upvotes" data-image-id=@image.id = @image.upvotes_count
-        span.upvote-span title="Yay!"
+          = if show_legacy_stats?(@conn.assigns.current_user) and not is_nil(@image.legacy_upvotes) do
+            span.legacy-stat> title="Legacy upvotes (#{@image.legacy_source || "archive"})" = "(#{@image.legacy_upvotes})"
+        span.upvote-span title="Upvote"
           i.fa.fa-arrow-up
       span.score.block__header__title data-image-id=@image.id = @image.score
+      = if show_legacy_stats?(@conn.assigns.current_user) and not is_nil(@image.legacy_score) do
+        span.legacy-stat.legacy-stat--score< title="Legacy score (#{@image.legacy_source || "archive"})" = "(#{@image.legacy_score})"
       a.interaction--downvote href="#" rel="nofollow" data-image-id=@image.id
-        span.downvote-span title="Neigh!"
+        span.downvote-span title="Downvote"
           i.fa.fa-arrow-down
         = if show_vote_counts?(@conn.assigns.current_user) do
           span.downvotes< title="Downvotes" data-image-id=@image.id = @image.downvotes_count
+          = if show_legacy_stats?(@conn.assigns.current_user) and not is_nil(@image.legacy_downvotes) do
+            span.legacy-stat< title="Legacy downvotes (#{@image.legacy_source || "archive"})" = "(#{@image.legacy_downvotes})"
       a.interaction--comments href="#comments" title="Comments"
         i.fa.fa-comments
         span.comments_count< data-image-id=@image.id = @image.comments_count

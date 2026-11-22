@@ -1,6 +1,6 @@
 .block#imagespns
   .spnstxt
-    ' Interested in advertising on Derpibooru?
+    ' Interested in advertising on BeastForge?
     => link "Click here", to: "/pages/advertising"
     ' for information!
 
@@ -9,6 +9,6 @@
 
   p
     strong
-      ' Derpibooru costs over $25 a day to operate -
+      ' Help funding the operational cost of BeastForge -
       = link "help support us financially", to: "/pages/donations"
       ' !

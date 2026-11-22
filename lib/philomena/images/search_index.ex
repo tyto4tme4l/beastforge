@@ -3,7 +3,7 @@ defmodule Philomena.Images.SearchIndex do
 
   @impl true
   def version do
-    1
+    2
   end
 
   @impl true
@@ -35,6 +35,11 @@ defmodule Philomena.Images.SearchIndex do
           downvoter_ids: %{type: "keyword"},
           downvoters: %{type: "keyword"},
           downvotes: %{type: "integer"},
+          legacy_score: %{type: "integer"},
+          legacy_upvotes: %{type: "integer"},
+          legacy_downvotes: %{type: "integer"},
+          legacy_faves: %{type: "integer"},
+          legacy_source: %{type: "keyword"},
           duplicate_id: %{type: "keyword"},
           duration: %{type: "float"},
           faves: %{type: "integer"},
@@ -107,6 +112,11 @@ defmodule Philomena.Images.SearchIndex do
       id: image.id,
       upvotes: image.upvotes_count,
       downvotes: image.downvotes_count,
+      legacy_score: image.legacy_score,
+      legacy_upvotes: image.legacy_upvotes,
+      legacy_downvotes: image.legacy_downvotes,
+      legacy_faves: image.legacy_faves,
+      legacy_source: image.legacy_source,
       score: image.score,
       faves: image.faves_count,
       hides: image.hides_count,

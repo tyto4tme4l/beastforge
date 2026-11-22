@@ -34,20 +34,20 @@ server() {
   START_WORKER=true mix phx.server
 }
 
-# Always install assets
-(
-  step cd /srv/philomena/assets
-  step npm install
-)
+# Always install assets (disabled for BeastForge, since it's pointless)
+#(
+#  step cd /srv/philomena/assets
+#  step npm install
+#)
 
-# Always install mix dependencies
-(
-  step cd /srv/philomena
-  step mix deps.get
-)
+# Always install mix dependencies (disabled for BeastForge, since it's pointless)
+#(
+#  step cd /srv/philomena
+#  step mix deps.get
+#)
 
 # Initialize S3 buckets
-step mix run -e 'PhilomenaMedia.Objects.create_buckets()' > /dev/null
+# step mix run -e 'PhilomenaMedia.Objects.create_buckets()' > /dev/null
 
 # Sleep to allow OpenSearch to finish initializing
 # if it's not done doing whatever it does yet
@@ -57,13 +57,16 @@ until step wget --no-check-certificate -qO - http://opensearch:9200; do
   sleep 2
 done
 
-# Try to create the database if it doesn't exist yet
-if step createdb -h postgres -U postgres philomena_dev; then
+# Ensure Hex and Rebar are installed non-interactively on boot
+mix local.hex --force
+mix local.rebar --force
+
+# Try to create the database if it doesn't exist yet (first-time boot only)
+if createdb -h postgres -U postgres philomena_dev 2>/dev/null; then
   step mix ecto.setup_dev
   step mix reindex_all
 elif [[ "$(mix ecto.migrations)" == *" down "* ]]; then
   step mix ecto.migrate --all
-  step mix reindex_all
 fi
 
 # Apply any pending search index migrations

@@ -13,7 +13,9 @@ defmodule PhilomenaWeb.CheckCaptchaPlug do
   end
 
   defp maybe_check_captcha(conn, nil) do
-    if valid_solution?(conn.params) do
+    token = extract_captcha_token(conn.params)
+
+    if token && verify_turnstile(token) do
       conn
     else
       conn
@@ -28,20 +30,37 @@ defmodule PhilomenaWeb.CheckCaptchaPlug do
 
   defp maybe_check_captcha(conn, _user), do: conn
 
-  defp valid_solution?(%{"h-captcha-response" => captcha_token}) do
-    {:ok, %{body: body, status: 200}} =
-      PhilomenaProxy.Http.post(
-        "https://hcaptcha.com/siteverify",
-        URI.encode_query(%{"response" => captcha_token, "secret" => hcaptcha_secret_key()}),
-        [{"Content-Type", "application/x-www-form-urlencoded"}]
-      )
+  # Extracts token from cf-turnstile-response or h-captcha-response,
+  # checking both top-level params and nested forms (image, tagging, etc.)
+  defp extract_captcha_token(params) when is_map(params) do
+    params["cf-turnstile-response"] ||
+      params["h-captcha-response"] ||
+      find_nested_token(params)
+  end
+  defp extract_captcha_token(_), do: nil
 
-    body
-    |> JSON.decode!()
-    |> Map.get("success", false)
+  defp find_nested_token(params) do
+    Enum.find_value(params, fn
+      {_k, %{} = nested} -> extract_captcha_token(nested)
+      _ -> nil
+    end)
   end
 
-  defp valid_solution?(_params), do: false
+  defp verify_turnstile(captcha_token) do
+    case PhilomenaProxy.Http.post(
+           "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+           URI.encode_query(%{"response" => captcha_token, "secret" => hcaptcha_secret_key()}),
+           [{"Content-Type", "application/x-www-form-urlencoded"}]
+         ) do
+      {:ok, %{body: body, status: 200}} ->
+        body
+        |> JSON.decode!()
+        |> Map.get("success", false)
+
+      _error ->
+        false
+    end
+  end
 
   defp do_failure_response(conn, true) do
     conn

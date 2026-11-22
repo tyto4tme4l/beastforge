@@ -208,10 +208,9 @@ export function setupImageUpload() {
   remoteUrl.addEventListener('input', () => setFetchEnabled());
   setFetchEnabled();
 
-  // Catch unintentional navigation away from the page
+// Catch unintentional navigation away from the page
 
   const beforeUnload = (event: BeforeUnloadEvent): string => {
-    // Chrome requires returnValue to be set
     event.preventDefault();
     event.returnValue = '';
     return '';
@@ -223,6 +222,11 @@ export function setupImageUpload() {
 
   const unregisterBeforeUnload = () => {
     window.removeEventListener('beforeunload', beforeUnload);
+    window.onbeforeunload = null;
+  };
+
+  const submitHandler = () => {
+    unregisterBeforeUnload();
   };
 
   const createTagError = (message: string) => {
@@ -243,96 +247,14 @@ export function setupImageUpload() {
   // populate tag error helper bars as necessary
   // return true if all checks pass
   // return false if any check fails
+
+  // Disabled broken client-side check so form submits directly to server-side tag_validator.ex
   const validateTags = (): boolean => {
-    const tagInput = $<HTMLDivElement>('.js-taginput');
-
-    if (!tagInput || !tagInput.innerText) {
-      return true;
-    }
-
-    const tagsArr = tagInput.innerText.split(',').map(t => t.trim());
-    const errors: string[] = [];
-
-    let hasRating = false;
-    let hasSafe = false;
-    let hasOtherRating = false;
-
-    tagsArr.forEach(tag => {
-      if (ratingsTags.includes(tag)) {
-        hasRating = true;
-        if (tag === 'safe') {
-          hasSafe = true;
-        } else {
-          hasOtherRating = true;
-        }
-      }
-    });
-
-    if (!hasRating) {
-      errors.push('Tag input must contain at least one rating tag');
-    } else if (hasSafe && hasOtherRating) {
-      errors.push('Tag input may not contain any other rating if safe');
-    }
-
-    if (tagsArr.length < 3) {
-      errors.push('Tag input must contain at least 3 tags');
-    }
-
-    errors.forEach(msg => createTagError(msg));
-
-    return errors.length === 0; // true: valid if no errors
-  };
-
-  const disableUploadButton = () => {
-    const submitButton = $<HTMLButtonElement>('.button.input--separate-top');
-
-    if (!submitButton) {
-      return;
-    }
-
-    const originalButtonText = submitButton.innerText;
-
-    submitButton.disabled = true;
-    submitButton.innerText = 'Please wait...';
-
-    // delay is needed because Safari stops the submit if the button is immediately disabled
-    requestAnimationFrame(() => submitButton.setAttribute('disabled', 'disabled'));
-
-    // Rolling back the disabled state when user navigated back to the form.
-    oncePersistedPageShown(() => {
-      if (!submitButton.disabled) {
-        return;
-      }
-
-      submitButton.disabled = false;
-      submitButton.innerText = originalButtonText;
-
-      submitButton.removeAttribute('disabled');
-    });
-  };
-
-  const submitHandler = (event: Event) => {
-    // Remove any existing tag error elements
-    clearTagErrors();
-
-    if (validateTags()) {
-      // Disable navigation check
-      unregisterBeforeUnload();
-
-      // Prevent duplicate attempts to submit the form
-      disableUploadButton();
-
-      // Let the form submission complete
-    } else {
-      // Scroll to view validation errors
-      assertNotNull($('.fancy-tag-upload')).scrollIntoView();
-
-      // Prevent the form from being submitted
-      event.preventDefault();
-    }
+    return true;
   };
 
   fileField.addEventListener('change', registerBeforeUnload);
   fetchButton.addEventListener('click', registerBeforeUnload);
   form.addEventListener('submit', submitHandler);
+  oncePersistedPageShown(unregisterBeforeUnload);
 }

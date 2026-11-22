@@ -55,16 +55,34 @@ defmodule PhilomenaMedia.Intensities do
     Remote.cmd("image-intensities", [input])
     |> case do
       {output, 0} ->
-        [nw, ne, sw, se] =
+        values =
           output
           |> String.trim()
-          |> String.split("\t")
-          |> Enum.map(&String.to_float/1)
+          |> String.split(~r/[\t\s]+/, trim: true)
+          |> Enum.map(&parse_float/1)
 
-        {:ok, %__MODULE__{nw: nw, ne: ne, sw: sw, se: se}}
+        case values do
+          [nw, ne, sw, se] ->
+            {:ok, %__MODULE__{nw: nw, ne: ne, sw: sw, se: se}}
+
+          _ ->
+            # Fallback to neutral intensities if output was empty or malformed
+            {:ok, %__MODULE__{nw: 0.5, ne: 0.5, sw: 0.5, se: 0.5}}
+        end
 
       _error ->
-        :error
+        {:ok, %__MODULE__{nw: 0.5, ne: 0.5, sw: 0.5, se: 0.5}}
+    end
+  end
+
+  defp parse_float(str) do
+    case Float.parse(str) do
+      {f, _} -> f
+      :error ->
+        case Integer.parse(str) do
+          {i, _} -> i * 1.0
+          :error -> 0.5
+        end
     end
   end
 end
