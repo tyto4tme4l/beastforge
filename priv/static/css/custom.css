@@ -1,0 +1,217 @@
+/* Bump the version number in /lib/philomena_web/templates/layout/app.html.slime to instantly apply the CSS changes (avoiding aggressive caching issues)
+
+/* 1. Lift the logo up so the glowing eye aligns with the text */
+.header__logo-img {
+    width: 40px !important;
+    height: 40px !important;
+    position: relative !important;
+   /* top: -2px !important;/*           /* Lifts the logo up 2 pixels */
+    margin-right: 4px !important;
+    display: inline-block !important;
+}
+
+/* 2. Secondary Header Bar (Expand to 35.2px) */
+nav.header.header--secondary,
+nav.header.header--secondary > div {
+    min-height: 35.2px !important;
+    height: 35.2px !important;
+    box-sizing: border-box !important;
+}
+
+/* Only style the TOP-LEVEL header buttons (not the dropdown items) */
+.header__navigation > .header__link,
+.header__navigation > .dropdown > .header__link {
+    min-height: 35.2px !important;
+    height: 35.2px !important;
+    line-height: 35.2px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+}
+
+/* 3. Fix Dropdown Menus (Ensure they stay in a single, unified box) */
+.dropdown__content {
+    min-width: 180px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dropdown__content .header__link {
+    display: block !important;
+    min-height: auto !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+    padding: 8px 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+}
+
+/* Legacy archive score & fave counters */
+.legacy-stat {
+  font-size: 0.85em;
+  opacity: 0.78;
+  font-weight: 500;
+}
+
+.legacy-stat--score {
+  margin-right: 4px;
+}
+
+.media-box__header .legacy-stat {
+  font-size: 0.82em;
+  margin-left: -2px;
+  margin-right: 3px;
+}
+
+/* ========================================================
+   DText [section] collapsible
+   ======================================================== */
+
+/* DText Collapsible [section] - Theme Agnostic */
+.dtext-section {
+  margin: 8px 0;
+  padding: 6px 12px;
+  background: rgba(128, 128, 128, 0.08);
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 4px;
+}
+
+.dtext-section[open] {
+  padding-bottom: 10px;
+  border-color: rgba(128, 128, 128, 0.55);
+}
+
+.dtext-section-title {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: inherit;
+  user-select: none;
+  outline: none;
+  padding: 2px 0;
+}
+
+.dtext-section-body {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(128, 128, 128, 0.35);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dtext-section-body > :first-child {
+  margin-top: 0;
+}
+
+.dtext-section-body > :last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================================
+   Video Zoom / Fit to Width Toggle
+   ======================================================== */
+
+/* 1. Force-hide the raw checkbox */
+input.video-zoom-checkbox {
+    display: none !important;
+    position: absolute !important;
+    opacity: 0 !important;
+}
+
+/* 2. State switching: Default View (waiting to expand) */
+.zoom-label-collapse,
+.zoom-icon-collapse {
+    display: none !important;
+}
+
+.zoom-label-expand,
+.zoom-icon-expand {
+    display: inline-block !important;
+}
+
+/* 3. State switching: Zoomed-in View (waiting to collapse) */
+input.video-zoom-checkbox:checked + .video-zoom-bar .zoom-label-expand,
+input.video-zoom-checkbox:checked + .video-zoom-bar .zoom-icon-expand {
+    display: none !important;
+}
+
+input.video-zoom-checkbox:checked + .video-zoom-bar .zoom-label-collapse,
+input.video-zoom-checkbox:checked + .video-zoom-bar .zoom-icon-collapse {
+    display: inline-block !important;
+}
+
+/* 4. When checked: Expand to full width up to native resolution (never blurry, never collapsed) */
+.center--layout--flex:has(input.video-zoom-checkbox:checked),
+.image-show-container:has(input.video-zoom-checkbox:checked),
+input.video-zoom-checkbox:checked ~ .image-target,
+.image-show-container:has(input.video-zoom-checkbox:checked) .image-target {
+    max-height: none !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    text-align: center !important;
+}
+
+.image-show-container:has(input.video-zoom-checkbox:checked) .image-target video,
+input.video-zoom-checkbox:checked ~ .image-target video {
+    max-height: none !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: var(--video-native-width, 100%) !important; /* Caps at native pixel width! */
+    display: block !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+}
+
+/* ========================================================
+   Embedded Video Thumbnails in Descriptions & Comments (>>id)
+   ======================================================== */
+
+/* Safety catch-all: NEVER allow any video in a text block to break out of borders */
+.communication__body__text video,
+.image-description video,
+.comment video,
+.paragraph video {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Prevent thumbnail containers from stretching across the entire width */
+.image-show-container[data-size]:not([data-size="full"]) {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: 100% !important;
+}
+
+/* 1. Small thumbnail: >>id_s (150x150) */
+.image-show-container[data-size="thumb_small"] video {
+    max-width: 150px !important;
+    max-height: 150px !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-block !important;
+    border-radius: 4px;
+}
+
+/* 2. Regular thumbnail: >>id_t (320x240) - Matches both "small" and "thumb" */
+.image-show-container[data-size="small"] video,
+.image-show-container[data-size="thumb"] video {
+    max-width: 320px !important;
+    max-height: 240px !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-block !important;
+    border-radius: 4px;
+}
+
+/* 3. Preview: >>id_p or >>id_m (800x600 max) */
+.image-show-container[data-size="medium"] video,
+.image-show-container[data-size="large"] video {
+    max-width: 800px !important;
+    max-height: 600px !important;
+    width: auto !important;
+    height: auto !important;
+    display: inline-block !important;
+    border-radius: 4px;
+}
