@@ -8,6 +8,7 @@ defmodule Philomena.Markdown do
   @spec to_html(String.t(), %{String.t() => String.t()}) :: String.t()
   def to_html(text, replacements) do
     text
+    |> pad_section_lines()
     |> Philomena.Native.markdown_to_html(replacements)
     |> postprocess_sections()
   end
@@ -20,6 +21,7 @@ defmodule Philomena.Markdown do
   @spec to_html_unsafe(String.t(), %{String.t() => String.t()}) :: String.t()
   def to_html_unsafe(text, replacements) do
     text
+    |> pad_section_lines()
     |> Philomena.Native.markdown_to_html_unsafe(replacements)
     |> postprocess_sections()
   end
@@ -42,53 +44,122 @@ defmodule Philomena.Markdown do
     end)
   end
 
-  # Transforms DText [section=Title]...[/section] into native HTML5 <details>,
-  # while skipping anything inside <pre>...</pre> or <code>...</code> blocks.
+  # Ensures standalone [section] / [/section] lines outside fenced code blocks
+  # sit in their own <div class="paragraph"> so multi-paragraph sections stay valid.
+  defp pad_section_lines(text) when is_binary(text) do
+    section_line_re =
+      ~r/^\s*(\[section(?:,(?:open|expanded))?(?:=[^\]]+)?\]|\[\/section\])\s*$/i
+
+    text
+    |> String.split("\n")
+    |> Enum.reduce({false, []}, fn line, {in_fence?, acc} ->
+      trimmed = String.trim_leading(line)
+      toggles_fence? = String.starts_with?(trimmed, "```") or String.starts_with?(trimmed, "~~~")
+      next_fence? = if toggles_fence?, do: not in_fence?, else: in_fence?
+
+      out_line =
+        if not in_fence? and Regex.match?(section_line_re, line) do
+          "\n" <> String.trim(line) <> "\n"
+        else
+          line
+        end
+
+      {next_fence?, [out_line | acc]}
+    end)
+    |> elem(1)
+    |> Enum.reverse()
+    |> Enum.join("\n")
+  end
+
+  # Stack-balanced [section=Title]...[/section] transformer that skips <pre> and <code> blocks
+  # and leaves unmatched opening/closing tags as literal text so layout HTML can never break.
   defp postprocess_sections(html) when is_binary(html) do
     code_regex = ~r/(<pre\b[^>]*>.*?<\/pre>|<code\b[^>]*>.*?<\/code>)/is
 
+    token_regex =
+      ~r/<div class="paragraph">\s*\[section(?:,(?:open|expanded))?(?:=[^\]]+)?\]\s*<\/div>|\[section(?:,(?:open|expanded))?(?:=[^\]]+)?\]|<div class="paragraph">\s*\[\/section\]\s*<\/div>|\[\/section\]/i
+
     code_regex
     |> Regex.split(html, include_captures: true)
-    |> Enum.map_join(fn chunk ->
-      if Regex.match?(code_regex, chunk) do
-        chunk
-      else
-        replace_section_tags(chunk)
+    |> Enum.reduce([%{type: :root, buf: []}], fn chunk, stack ->
+      cond do
+        chunk == "" ->
+          stack
+
+        Regex.match?(code_regex, chunk) ->
+          [top | rest] = stack
+          [%{top | buf: [chunk | top.buf]} | rest]
+
+        true ->
+          token_regex
+          |> Regex.split(chunk, include_captures: true)
+          |> Enum.reduce(stack, fn part, acc_stack ->
+            process_section_part(part, acc_stack)
+          end)
       end
     end)
+    |> unwind_unclosed()
   end
 
-  defp postprocess_sections(other), do: other
+  defp process_section_part("", stack), do: stack
 
-  defp replace_section_tags(chunk) do
-    open_regex =
-      ~r/<p>\s*\[section(?:,(?:open|expanded))?(?:=[^\]]+)?\]\s*<\/p>|\[section(?:,(?:open|expanded))?(?:=[^\]]+)?\](?:\s*<br\s*\/?>)?/i
+  defp process_section_part(part, stack) do
+    cond do
+      Regex.match?(~r/^(?:<div class="paragraph">\s*)?\[section/i, part) ->
+        is_open = Regex.match?(~r/\[section,(?:open|expanded)/i, part)
 
-    close_regex =
-      ~r/<p>\s*\[\/section\]\s*<\/p>|(?:\s*<br\s*\/?>)?\[\/section\]/i
+        title =
+          case Regex.run(~r/\[section(?:,(?:open|expanded))?=([^\]]+)\]/i, part) do
+            [_, raw_title] ->
+              case String.trim(raw_title) do
+                "" -> "Details"
+                t -> escape_title(t)
+              end
 
-    chunk
-    |> String.replace(open_regex, fn match ->
-      is_open = if Regex.match?(~r/\[section,(?:open|expanded)/i, match), do: " open", else: ""
+            _ ->
+              "Details"
+          end
 
-      title =
-        case Regex.run(~r/=([^\]]+)\]/, match) do
-          [_, raw_title] ->
-            case String.trim(raw_title) do
-              "" -> "Details"
-              t -> escape_title(t)
-            end
+        [%{type: :section, open: is_open, title: title, raw: part, buf: []} | stack]
+
+      Regex.match?(~r/^(?:<div class="paragraph">\s*)?\[\/section\]/i, part) ->
+        case stack do
+          [%{type: :section} = frame, parent | rest] ->
+            inner =
+              frame.buf
+              |> Enum.reverse()
+              |> IO.iodata_to_binary()
+              |> String.replace(~r/^\s*<br\s*\/?>\s*/i, "")
+              |> String.replace(~r/\s*<br\s*\/?>\s*$/i, "")
+
+            open_attr = if frame.open, do: " open", else: ""
+
+            html =
+              ~s(<details#{open_attr} class="dtext-section"><summary class="dtext-section-title">#{frame.title}</summary><div class="dtext-section-body">#{inner}</div></details>)
+
+            [%{parent | buf: [html | parent.buf]} | rest]
 
           _ ->
-            "Details"
+            # Unmatched [/section]: leave literal instead of emitting stray closing tags
+            [top | rest] = stack
+            [%{top | buf: [part | top.buf]} | rest]
         end
 
-      ~s(<details#{is_open} class="dtext-section"><summary class="dtext-section-title">#{title}</summary><div class="dtext-section-body">)
-    end)
-    |> String.replace(close_regex, "</div></details>")
+      true ->
+        [top | rest] = stack
+        [%{top | buf: [part | top.buf]} | rest]
+    end
   end
 
-  defp postprocess_sections(other), do: other
+  defp unwind_unclosed([%{type: :root, buf: buf}]) do
+    buf |> Enum.reverse() |> IO.iodata_to_binary()
+  end
+
+  defp unwind_unclosed([%{type: :section} = frame, parent | rest]) do
+    # Unclosed [section]: restore literal opening tag + its content so HTML remains valid
+    inner = frame.buf |> Enum.reverse() |> IO.iodata_to_binary()
+    unwind_unclosed([%{parent | buf: [inner, frame.raw | parent.buf]} | rest])
+  end
 
   defp escape_title(title) do
     title
